@@ -69,6 +69,21 @@ For the full GPU run, open `takemeter_colab.ipynb` in Google Colab. That
 notebook downloads the completed workflow from this repository, prompts for the
 CSV upload, and exports the report artifacts.
 
+After downloading the Colab outputs into `reports/`, run:
+
+```powershell
+python scripts/render_readme_metrics.py
+```
+
+That command creates:
+
+- `reports/readme_evaluation_section.md` - Markdown tables and analysis prompts
+  to paste into this README.
+- `reports/ai_wrong_prediction_prompt.md` - the prompt to paste into Claude or
+  another LLM before writing the final wrong-prediction analysis.
+- `demo/DEMO_SCRIPT.md` - a 3-5 minute recording outline using real prediction
+  examples.
+
 ### Label Distribution
 
 TODO: paste the label distribution from the preflight output.
@@ -177,6 +192,14 @@ Rows are true labels and columns are fine-tuned model predictions.
 | TODO | TODO |
 
 The image version is saved at `reports/confusion_matrix.png`.
+
+### AI-Assisted Wrong-Prediction Pattern Review
+
+TODO: Before finalizing this section, paste
+`reports/ai_wrong_prediction_prompt.md` into Claude or another LLM and ask it to
+surface patterns in the misclassified examples. Then re-read the examples
+yourself. Keep the patterns that are actually supported, and say which suggested
+patterns you corrected or discarded.
 
 ### Wrong Predictions
 

@@ -397,6 +397,15 @@ def train_and_evaluate(csv_path: str | Path, community: str) -> None:
                 "is_correct": bool(true_id == pred_id),
             }
         )
+    predictions_df = pd.DataFrame(predictions)
+    wrong_predictions_df = predictions_df[predictions_df["is_correct"] == False].copy()  # noqa: E712
+    sample_classifications_df = pd.concat(
+        [
+            predictions_df[predictions_df["is_correct"] == True].head(3),  # noqa: E712
+            wrong_predictions_df.head(2),
+        ],
+        ignore_index=True,
+    ).head(5)
 
     results = {
         "community": community,
@@ -415,11 +424,15 @@ def train_and_evaluate(csv_path: str | Path, community: str) -> None:
     }
 
     (OUTPUT_DIR / "evaluation_results.json").write_text(json.dumps(results, indent=2), encoding="utf-8")
-    pd.DataFrame(predictions).to_csv(OUTPUT_DIR / "predictions.csv", index=False)
+    predictions_df.to_csv(OUTPUT_DIR / "predictions.csv", index=False)
+    wrong_predictions_df.to_csv(OUTPUT_DIR / "wrong_predictions.csv", index=False)
+    sample_classifications_df.to_csv(OUTPUT_DIR / "sample_classifications.csv", index=False)
     test_df.to_csv(OUTPUT_DIR / "test_split.csv", index=False)
     print("\nFiles ready:")
     print(f"  {OUTPUT_DIR / 'evaluation_results.json'}")
     print(f"  {OUTPUT_DIR / 'predictions.csv'}")
+    print(f"  {OUTPUT_DIR / 'wrong_predictions.csv'}")
+    print(f"  {OUTPUT_DIR / 'sample_classifications.csv'}")
     print(f"  {OUTPUT_DIR / 'test_split.csv'}")
     print(f"  {confusion_path}")
 

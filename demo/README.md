@@ -11,3 +11,11 @@ Show:
 
 If the video is too large for GitHub, upload it elsewhere and link it from
 `README.md`.
+
+After Colab outputs are copied into `reports/`, run:
+
+```powershell
+python scripts/render_readme_metrics.py
+```
+
+This creates `demo/DEMO_SCRIPT.md` with real examples from the test predictions.
