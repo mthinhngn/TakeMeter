@@ -139,7 +139,7 @@ def render_ai_pattern_summary(rows: list[dict[str, str]]) -> str:
             f"Wrong-post length range: {min(lengths)}-{max(lengths)} words; {short_count} wrong examples are very short (12 words or fewer).",
             f"{high_conf_wrong} wrong examples have confidence at or above 0.70, which may indicate the model learned a misleading shortcut rather than just being uncertain.",
             "",
-            "Verified pattern notes: TODO: after using the AI prompt, write which patterns were real, which were discarded, and what you saw when re-reading the examples.",
+            "Verified pattern notes: after using the AI prompt, write which patterns were real, which were discarded, and what you saw when re-reading the examples.",
         ]
     )
 
@@ -151,7 +151,7 @@ def render_wrong_predictions(rows: list[dict[str, str]]) -> str:
     ]
     for row in rows[:3]:
         lines.append(
-            "| {text} | {true} | {pred} | {confidence} | TODO: explain the confused label boundary, whether the example is ambiguous or underrepresented, and what data/spec change would help. |".format(
+            "| {text} | {true} | {pred} | {confidence} | Explain the confused label boundary, whether the example is ambiguous or underrepresented, and what data/spec change would help. |".format(
                 text=markdown_escape(excerpt(row["text"])),
                 true=row["true_label"],
                 pred=row["finetuned_prediction"],
@@ -159,7 +159,7 @@ def render_wrong_predictions(rows: list[dict[str, str]]) -> str:
             )
         )
     while len(lines) < 5:
-        lines.append("| TODO | TODO | TODO | TODO | TODO |")
+        lines.append("| Fill in after rerun | Fill in after rerun | Fill in after rerun | Fill in after rerun | Fill in after rerun |")
     return "\n".join(lines)
 
 
@@ -227,7 +227,7 @@ def render_readme_section(results: dict, predictions: list[dict[str, str]]) -> s
     sample_rows = choose_sample_rows(predictions)
     first_correct = next((row for row in sample_rows if is_correct(row)), None)
     correct_note = (
-        "TODO: explain why this correct prediction is reasonable using the label definition."
+        "Explain why this correct prediction is reasonable using the label definition."
         if first_correct
         else "No correct sample was available in `predictions.csv`."
     )
@@ -251,7 +251,7 @@ def render_readme_section(results: dict, predictions: list[dict[str, str]]) -> s
             render_samples(predictions),
             f"Correct example explanation: {correct_note}",
             "### Reflection",
-            "TODO: explain what the model captured versus what the taxonomy intended. Name one repeated failure pattern and whether it looks like a data distribution issue, a label-boundary issue, or annotation inconsistency.",
+            "Explain what the model captured versus what the taxonomy intended. Name one repeated failure pattern and whether it looks like a data distribution issue, a label-boundary issue, or annotation inconsistency.",
         ]
     )
 
@@ -288,7 +288,7 @@ def render_demo_script(results: dict, predictions: list[dict[str, str]]) -> str:
             (
                 f"Use this one: \"{excerpt(correct['text'], 180)}\". Explain why `{correct['finetuned_prediction']}` matches the label definition."
                 if correct
-                else "TODO: choose one correct prediction after rerunning the model."
+                else "Choose one correct prediction after rerunning the model."
             ),
             "",
             "## 4. Narrate One Incorrect Prediction",
@@ -296,7 +296,7 @@ def render_demo_script(results: dict, predictions: list[dict[str, str]]) -> str:
             (
                 f"Use this one: \"{excerpt(wrong['text'], 180)}\". The model predicted `{wrong['finetuned_prediction']}` but the true label was `{wrong['true_label']}`. Explain the boundary it missed."
                 if wrong
-                else "TODO: choose one incorrect prediction after rerunning the model."
+                else "Choose one incorrect prediction after rerunning the model."
             ),
             "",
             "## 5. Walk Through Evaluation Report",
