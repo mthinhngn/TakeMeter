@@ -114,6 +114,14 @@ def load_and_validate_dataset(csv_path: str | Path):
         raise ValueError(f"Need at least {MIN_EXAMPLES} usable examples; found {len(df)}.")
     if not (MIN_LABELS <= len(labels) <= MAX_LABELS):
         raise ValueError(f"Need {MIN_LABELS}-{MAX_LABELS} labels; found {len(labels)}: {labels}")
+    label_share = df["label"].value_counts(normalize=True)
+    largest_label = label_share.index[0]
+    largest_share = float(label_share.iloc[0])
+    if largest_share > 0.70:
+        raise ValueError(
+            f"Label imbalance too high: '{largest_label}' is {largest_share:.1%} of the dataset. "
+            "No single label may account for more than 70%."
+        )
 
     label_map = {label: idx for idx, label in enumerate(labels)}
     df["label_id"] = df["label"].map(label_map).astype(int)

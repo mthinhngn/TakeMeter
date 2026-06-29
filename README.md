@@ -7,6 +7,19 @@ evaluation artifacts, and the final report.
 > Status: implementation scaffold is complete. Final metrics require the real
 > `data/takemeter_labeled.csv` and a Colab run with `GROQ_API_KEY`.
 
+## Rubric Coverage Checklist
+
+| Rubric area | Where covered |
+|---|---|
+| Label taxonomy: 2-4 labels, complete definitions, 2 examples each, clear boundaries | `Label Taxonomy` |
+| Annotated dataset: 200+ examples, source/process/distribution, hard cases, no label over 70% | `Dataset` |
+| Fine-tuning pipeline: base model, platform, justified hyperparameter decision | `Fine-Tuning Approach` |
+| Baseline comparison: prompt and same-test-set metrics | `Baseline`, `Evaluation Report` |
+| Error analysis: per-class metrics, confusion matrix, 3 wrong predictions, reflection | `Evaluation Report`, `Reflection` |
+| `planning.md`: community reasoning, labels/edge case, data/eval plan, good-enough threshold, AI plan | `planning.md` |
+| Demo video: 3-5 classifications, one correct, one incorrect, report walkthrough | `Demo Video` |
+| AI usage and spec reflection | `AI Usage`, `Spec Reflection` |
+
 ## Community Choice And Reasoning
 
 TODO: Name the selected community and explain why it is a good source for this
@@ -27,6 +40,9 @@ community.
 |---|---|---|---|
 | TODO | TODO | TODO | TODO |
 | TODO | TODO | TODO | TODO |
+
+Boundary note: TODO: explain the clearest difference between the most easily
+confused labels so two readers would likely label most examples the same way.
 
 ## Dataset
 
@@ -57,11 +73,18 @@ TODO: paste the label distribution from the preflight output.
 |---|---:|
 | TODO | TODO |
 
+No single label may account for more than 70% of the dataset. The preflight
+script fails if this balance requirement is violated.
+
 ### Labeling Process
 
 TODO: Describe where examples came from, how they were selected, how labels were
 assigned, and any cleanup performed. Explain how ambiguous cases were resolved
 when topic, tone, and take quality pointed in different directions.
+
+Data source: TODO.
+
+Labeling process: TODO.
 
 ### Difficult Examples
 
@@ -75,7 +98,7 @@ when topic, tone, and take quality pointed in different directions.
 
 The fine-tuned classifier uses `distilbert-base-uncased` with a sequence
 classification head. The workflow uses a stratified 70/15/15 split for
-train/validation/test.
+train/validation/test and is intended to run on Google Colab with a T4 GPU.
 
 Training defaults:
 
@@ -91,12 +114,19 @@ Training defaults:
 
 Hyperparameter decision: 3 epochs is a conservative choice for a small dataset.
 It gives the model multiple passes over the examples while limiting overfitting.
+This is a deliberate training decision, not just an unchanged default: if
+validation accuracy flattens or drops after early epochs, longer training would
+be more likely to memorize community-specific keywords than learn label
+boundaries.
 
 ## Baseline
 
 The baseline uses Groq `llama-3.3-70b-versatile` with temperature `0`. The prompt
 is generated from the community name, labels, and representative examples, and it
 instructs the model to return only one valid label.
+
+Baseline results are collected on the exact same held-out test split as the
+fine-tuned model so the comparison is fair.
 
 The exact prompt used during the run is saved in:
 
@@ -114,6 +144,9 @@ python ai201_project3_takemeter_starter_clean.py --csv data/takemeter_labeled.cs
 
 In Colab, add `GROQ_API_KEY` through Secrets before running the baseline.
 
+Good enough threshold from `planning.md`: TODO: paste the pre-training threshold
+and state whether the final fine-tuned model met it.
+
 ### Overall Metrics
 
 | Model | Accuracy |
@@ -122,6 +155,9 @@ In Colab, add `GROQ_API_KEY` through Secrets before running the baseline.
 | Fine-tuned DistilBERT | TODO |
 
 ### Per-Class Metrics
+
+At least one per-class metric for the fine-tuned model is required; this table
+reports precision, recall, and F1 for each label.
 
 | Model | Label | Precision | Recall | F1 |
 |---|---|---:|---:|---:|
@@ -146,6 +182,9 @@ The image version is saved at `reports/confusion_matrix.png`.
 | TODO | TODO | TODO | TODO | TODO |
 | TODO | TODO | TODO | TODO | TODO |
 
+Each analysis should tie the error to the data, a label boundary, or model
+behavior. Do not write only that the model got it wrong.
+
 ### Sample Classifications
 
 | Text excerpt | True label | Predicted label | Confidence | Correct? |
@@ -161,6 +200,9 @@ Correct example explanation: TODO.
 TODO: Explain what the model learned compared with what the taxonomy intended.
 Discuss whether it learned meaningful quality signals or shortcuts such as
 keywords, phrasing, topic references, hot-button names, or class imbalance.
+
+Specific failure pattern: TODO: name one repeated failure pattern, such as a
+particular label pair, a post type, or a distribution issue.
 
 ## Spec Reflection
 
@@ -190,6 +232,9 @@ TODO: Add a link to a 3-5 minute demo video showing:
 - a brief walkthrough of this evaluation report.
 
 If the file is too large for GitHub, link a shareable video URL here.
+
+Evaluation report summary for demo: TODO: briefly surface the key metrics and
+most important error pattern.
 
 ## Repository Checklist
 

@@ -14,7 +14,9 @@ broad enough to collect at least 200 labeled examples.
 **Final community:** TODO: replace with the exact subreddit/forum/community used.
 
 **Reasoning:** TODO: explain why this community produces useful, labelable posts
-and why the classification task matters.
+and why the classification task matters. This should be more than naming the
+community: describe the recurring opinion style, disagreements, or quality
+signals that make TakeMeter useful there.
 
 ## Label Taxonomy
 
@@ -28,6 +30,11 @@ low-effort reaction within this community.
 | TODO | TODO | TODO | TODO |
 | TODO | TODO | TODO | TODO |
 
+**Hardest anticipated edge case:** TODO: name one boundary that will be hard to
+label, such as evidence-backed criticism versus low-effort negativity, funny
+hyperbole versus empty noise, or an insightful unpopular opinion versus a bad
+take. State the rule that will resolve that boundary.
+
 ## Data Collection Plan
 
 - Collect at least 200 examples from the selected community.
@@ -36,6 +43,8 @@ low-effort reaction within this community.
 - Optional useful columns: `source_url`, `post_id`, `created_at`, `notes`.
 - Remove usernames, private information, deleted content, and unrelated boilerplate.
 - Keep labels exactly consistent with the taxonomy.
+- Keep the dataset balanced enough that no single label is more than 70% of all
+  examples.
 
 ## Labeling Process
 
@@ -65,13 +74,24 @@ output.
 ## Evaluation Plan
 
 The report will compare the Groq baseline against the fine-tuned DistilBERT
-model on the held-out test set using:
+model on the same held-out test set using:
 
 - overall accuracy for both models;
 - per-class precision, recall, and F1;
 - a confusion matrix written as a Markdown table in `README.md`;
 - three wrong predictions with analysis;
 - three to five sample classifications with label and confidence.
+
+Accuracy is useful because each example receives one label. Per-class precision,
+recall, and F1 are necessary because a good overall score could hide failure on
+a smaller label. The confusion matrix will show which label boundaries are most
+fragile.
+
+**Good enough threshold:** TODO: state the concrete target before final tuning.
+Suggested default: the fine-tuned model should beat the Groq baseline on the
+same test split and reach at least 0.65 accuracy, with no class F1 below 0.45.
+If the dataset is especially ambiguous, revise this threshold before training
+and explain why.
 
 ## Anticipated Challenges
 
@@ -84,6 +104,8 @@ model on the held-out test set using:
 ## AI Usage Plan
 
 Codex will be used to complete the notebook workflow, build validation and
-reporting helpers, and draft the submission documentation. Human review will
-provide the dataset, verify the taxonomy, revise misleading examples, and ensure
-the README honestly reflects the collected results.
+reporting helpers, and draft the submission documentation. AI may also be used
+for label stress-testing, such as asking whether two definitions are too
+overlapping or whether a difficult example exposes a weak boundary. Human review
+will provide the dataset, verify the taxonomy, revise misleading examples, and
+ensure the README honestly reflects the collected results.
