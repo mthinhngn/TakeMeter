@@ -65,6 +65,10 @@ After the dataset is added, run:
 python ai201_project3_takemeter_starter_clean.py --preflight data/takemeter_labeled.csv --community "TODO community name"
 ```
 
+For the full GPU run, open `takemeter_colab.ipynb` in Google Colab. That
+notebook downloads the completed workflow from this repository, prompts for the
+CSV upload, and exports the report artifacts.
+
 ### Label Distribution
 
 TODO: paste the label distribution from the preflight output.
