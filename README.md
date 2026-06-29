@@ -1,4 +1,4 @@
-# Show What You Know: TakeMeter
+# TakeMeter: r/berkeley Take-Quality Classifier
 
 TakeMeter is a text classifier for evaluating the quality of takes in `r/berkeley`
 student-life discussions. It compares a fine-tuned DistilBERT classifier against
@@ -43,7 +43,7 @@ No label accounts for more than 70% of the dataset.
 
 ### Data Source And Labeling Process
 
-The examples were built from my existing local notes summarizing public
+The examples were built from existing local notes summarizing public
 `r/berkeley` discussions about housing and dining. Those notes preserve source
 URLs and paraphrase the discussion content rather than storing usernames or raw
 thread archives. I converted the notes into short post-like examples and labeled
@@ -94,7 +94,8 @@ The baseline uses Groq `llama-3.3-70b-versatile` with temperature `0`. The
 prompt names `r/berkeley`, defines all three labels, gives two examples per
 label, and instructs the model to output only a valid label. Baseline predictions
 were collected on the exact same 36-example held-out test split as the
-fine-tuned model.
+fine-tuned model. The exact prompt is saved in
+`reports/evaluation_results.json`.
 
 ## Evaluation Report
 

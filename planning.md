@@ -1,33 +1,16 @@
-# Show What You Know: TakeMeter Planning Specification
+# TakeMeter Planning Specification
 
 ## Community Choice
 
-This project builds **TakeMeter**, a fine-tuned text classifier that evaluates
-the quality of takes in one selected online community. The goal is not generic
-topic classification. The labels should capture what counts as a good, weak,
-reactionary, insightful, overconfident, or otherwise meaningful take in the
-specific discourse norms of the chosen community.
-
-The community should be narrow enough that members share recognizable norms, but
-broad enough to collect at least 200 labeled examples.
-
-**Final community:** `r/berkeley`.
-
-**Reasoning:** `r/berkeley` is active, text-heavy, and full of practical
-student opinions about housing, dining, classes, safety, registration, social
-life, and campus policy. It is a good fit for TakeMeter because the same topic
-can produce very different kinds of takes: some posts explain tradeoffs from
-experience, some make confident claims without support, and some are mostly
-immediate venting or joking. Those distinctions matter because students often
-use the community to make real decisions, so the quality of the reasoning is
-more important than whether the post is positive or negative.
+I chose `r/berkeley`, a public student community where people ask for advice,
+compare experiences, vent, and debate campus life. The community is a good fit
+for TakeMeter because students often use it for real decisions about housing,
+dining, classes, and campus logistics. A useful classifier should not simply
+detect the topic of a post; it should distinguish whether the post gives
+transferable reasoning, makes an unsupported claim, or mostly expresses a
+reaction.
 
 ## Label Taxonomy
-
-The final taxonomy must contain 2-4 labels. Labels should describe discourse
-quality, not incidental topic words. A good taxonomy should make it possible to
-explain why one post is a strong take and another is noise, exaggeration, or a
-low-effort reaction within this community.
 
 | Label | Definition | Example 1 | Example 2 |
 |---|---|---|---|
@@ -35,88 +18,76 @@ low-effort reaction within this community.
 | `unsupported_take` | The post makes a broad or confident claim about Berkeley life without enough evidence, context, or reasoning to justify the strength of the opinion. | "All the dining halls are trash and anyone saying otherwise is coping." | "Foothill is objectively the worst dorm because it is far from everything." |
 | `reactive_noise` | The post is mainly an emotional reaction, joke, complaint, or hype response with little transferable information or argument. | "Enrollment time again, I hate it here." | "The Wi-Fi died during my quiz, this campus is unserious." |
 
-**Hardest anticipated edge case:** The hardest boundary is between
-`grounded_advice` and `unsupported_take` when a post has a strong opinion plus
-one concrete detail. Decision rule: if the detail would still help another
+The hardest anticipated edge case is `grounded_advice` versus
+`unsupported_take`. Some posts contain one concrete detail inside a broad
+emotional claim. My decision rule is: if the detail would still help another
 student make a decision after removing the emotional wording, label it
-`grounded_advice`; if the detail is vague, cherry-picked, or only decorative,
-label it `unsupported_take`. Example: "Cafe 3 is awful because the rice was
-undercooked twice this week" is borderline, but it becomes `grounded_advice` if
-the post compares options or explains when/why the issue happens; by itself it
-is closer to `unsupported_take` because it generalizes from a narrow complaint.
+`grounded_advice`; if the detail is vague, isolated, cherry-picked, or only
+decorative support for a sweeping claim, label it `unsupported_take`.
 
-## Data Collection Plan
+## Data Collection And Annotation Plan
 
-- Collect at least 200 examples from the selected community.
-- Store the dataset as `data/takemeter_labeled.csv`.
-- Required columns: `text`, `label`.
-- Optional useful columns: `source_url`, `post_id`, `created_at`, `notes`.
-- Remove usernames, private information, deleted content, and unrelated boilerplate.
-- Keep labels exactly consistent with the taxonomy.
-- Keep the dataset balanced enough that no single label is more than 70% of all
-  examples.
+The planned dataset format is a CSV at `data/takemeter_labeled.csv` with at
+least `text` and `label` columns. Optional provenance columns such as
+`source_note` are allowed. The goal is at least 200 examples with no single label
+over 70% of the dataset.
 
-## Labeling Process
+Direct Reddit scraping was attempted later but blocked from the local
+environment, so the final implementation used existing local notes summarizing
+public `r/berkeley` discussions. Those notes preserve source URLs and paraphrase
+public thread content without storing usernames or raw thread archives. I then
+generated short post-like examples from those notes and labeled them using the
+taxonomy above. This is disclosed in the README because it is not the same as a
+fresh scrape of 200 verbatim comments.
 
-Each example will be assigned exactly one label. Ambiguous examples should be
-resolved by the label that best captures the quality of the take in context, not
-just the topic being discussed. The final README will document three difficult
-examples, the chosen label, and why another label was rejected.
+Annotation rules:
+
+- Label the quality of the take, not whether I agree with it.
+- Prefer `grounded_advice` when the post gives concrete comparison, context, or
+  decision guidance.
+- Prefer `unsupported_take` when the post makes a strong claim without enough
+  support.
+- Prefer `reactive_noise` when the post is mainly a vent, joke, or immediate
+  emotional response.
 
 ## Modeling Plan
 
-The fine-tuned model will use `distilbert-base-uncased` with a sequence
-classification head. The default training setup is 3 epochs, learning rate
-`2e-5`, batch size 16, weight decay `0.01`, and a stratified 70/15/15
-train/validation/test split.
+The fine-tuned model is `distilbert-base-uncased` with a sequence classification
+head. The planned split is stratified 70/15/15 train/validation/test. The main
+training configuration is 3 epochs, learning rate `2e-5`, train batch size 16,
+eval batch size 32, and max token length 256.
 
-The hyperparameter choice to report is the conservative 3-epoch setup: it gives
-the small dataset enough passes to learn label patterns while reducing the risk
-of overfitting compared with longer training.
+The key hyperparameter decision is to keep training at 3 epochs. With a small
+dataset, more epochs could overfit to repeated phrasing in the examples instead
+of learning the intended label boundary.
 
 ## Baseline Plan
 
-The baseline will use Groq `llama-3.3-70b-versatile` in a zero-shot prompt. The
-prompt will describe the community, define each take-quality label, include two
-examples per label when available, and strictly require one valid label as the
-output.
+The baseline is Groq `llama-3.3-70b-versatile` with temperature `0`. The prompt
+will name `r/berkeley`, define each label, include two examples per label, and
+require the model to output only one valid label. The baseline and fine-tuned
+model will be evaluated on the same held-out test split.
 
 ## Evaluation Plan
 
-The report will compare the Groq baseline against the fine-tuned DistilBERT
-model on the same held-out test set using:
+I will report overall accuracy for both models, per-class precision/recall/F1
+for both models, a confusion matrix for the fine-tuned model, at least three
+wrong predictions with analysis, and 3-5 sample classifications with confidence.
 
-- overall accuracy for both models;
-- per-class precision, recall, and F1;
-- a confusion matrix written as a Markdown table in `README.md`;
-- three wrong predictions with analysis;
-- three to five sample classifications with label and confidence.
+Accuracy is useful because each example has one label. Per-class metrics are
+necessary because a high overall score could hide failure on a smaller or harder
+label. The confusion matrix is especially important because the expected failure
+is a boundary problem between `grounded_advice` and `unsupported_take`.
 
-Accuracy is useful because each example receives one label. Per-class precision,
-recall, and F1 are necessary because a good overall score could hide failure on
-a smaller label. The confusion matrix will show which label boundaries are most
-fragile.
+Good-enough threshold: the fine-tuned model should reach at least 0.65 accuracy
+and keep every class F1 at or above 0.45. Ideally it should beat the Groq
+baseline, but if it does not, the report should explain what the baseline did
+better and what the fine-tuned model failed to learn.
 
-**Good enough threshold:** The fine-tuned model should beat the Groq baseline on
-the same test split, reach at least 0.65 accuracy, and keep each class F1 at or
-above 0.45. This threshold is realistic for a small 200-example dataset while
-still requiring the model to learn more than the majority label or obvious
-keywords.
+## AI Tool Plan
 
-## Anticipated Challenges
-
-- Short posts may lack context and be hard to label consistently.
-- `grounded_advice` and `unsupported_take` may overlap when a post mixes a
-  useful detail with exaggerated framing.
-- Label imbalance may make minority classes harder for the model to learn.
-- The Groq baseline may output extra text unless the prompt strongly constrains
-  the response format.
-
-## AI Usage Plan
-
-Codex will be used to complete the notebook workflow, build validation and
-reporting helpers, and draft the submission documentation. AI may also be used
-for label stress-testing, such as asking whether two definitions are too
-overlapping or whether a difficult example exposes a weak boundary. Human review
-will provide the dataset, verify the taxonomy, revise misleading examples, and
-ensure the README honestly reflects the collected results.
+I planned to use AI tools for implementation support, label stress-testing, and
+failure-pattern analysis. In practice, Codex helped build the workflow, generate
+the dataset from existing notes, run the model, and write the report structure.
+Groq was also used as a second reviewer for wrong predictions so I could compare
+its suggested patterns with my own rereading of the examples.
