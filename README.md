@@ -1,35 +1,18 @@
 # Show What You Know: TakeMeter
 
-This repository contains the AI201 Project 3 TakeMeter submission package:
-a labeled dataset, a DistilBERT fine-tuning workflow, a Groq zero-shot baseline,
-evaluation artifacts, and the final report.
-
-> Status: community and label design are complete. Final metrics require the
-> real `data/takemeter_labeled.csv` and a Colab run with `GROQ_API_KEY`.
-
-## Rubric Coverage Checklist
-
-| Rubric area | Where covered |
-|---|---|
-| Label taxonomy: 2-4 labels, complete definitions, 2 examples each, clear boundaries | `Label Taxonomy` |
-| Annotated dataset: 200+ examples, source/process/distribution, hard cases, no label over 70% | `Dataset` |
-| Fine-tuning pipeline: base model, platform, justified hyperparameter decision | `Fine-Tuning Approach` |
-| Baseline comparison: prompt and same-test-set metrics | `Baseline`, `Evaluation Report` |
-| Error analysis: per-class metrics, confusion matrix, 3 wrong predictions, reflection | `Evaluation Report`, `Reflection` |
-| `planning.md`: community reasoning, labels/edge case, data/eval plan, good-enough threshold, AI plan | `planning.md` |
-| Demo video: 3-5 classifications, one correct, one incorrect, report walkthrough | `Demo Video` |
-| AI usage and spec reflection | `AI Usage`, `Spec Reflection` |
+TakeMeter is a text classifier for evaluating the quality of takes in `r/berkeley`
+student-life discussions. It compares a fine-tuned DistilBERT classifier against
+a Groq zero-shot baseline on the same held-out test set.
 
 ## Community Choice And Reasoning
 
-This project studies `r/berkeley`, a public student community where people ask
-for advice, vent, compare experiences, and argue about campus life. I chose this
-community because many posts are not simply "about" one topic; they differ in
-how useful the take is. A housing post can be grounded advice, a dining post can
-be an unsupported generalization, and an enrollment post can be mostly a
-reaction. The taxonomy therefore measures discourse quality: whether a post
-gives transferable reasoning, asserts a broad claim without support, or mainly
-expresses emotion/noise.
+I chose `r/berkeley` because it is a public, text-heavy student community where
+people regularly ask for advice, compare experiences, vent, and argue about
+campus life. The same topic can produce very different kinds of discourse: a
+housing post can give transferable advice, a dining post can make a sweeping
+unsupported claim, and an enrollment post can mostly be an emotional reaction.
+That makes the community a good fit for TakeMeter because the task is not topic
+classification; it is judging whether a take contains useful reasoning.
 
 ## Label Taxonomy
 
@@ -39,101 +22,61 @@ expresses emotion/noise.
 | `unsupported_take` | The post makes a broad or confident claim about Berkeley life without enough evidence, context, or reasoning to justify the strength of the opinion. | "All the dining halls are trash and anyone saying otherwise is coping." | "Foothill is objectively the worst dorm because it is far from everything." |
 | `reactive_noise` | The post is mainly an emotional reaction, joke, complaint, or hype response with little transferable information or argument. | "Enrollment time again, I hate it here." | "The Wi-Fi died during my quiz, this campus is unserious." |
 
-Boundary note: the most easily confused labels are `grounded_advice` and
-`unsupported_take`. If a post includes a specific detail that would help another
-student make a decision even after removing the emotional wording, I label it
-`grounded_advice`. If the detail is vague, isolated, or only there to make a
-broad claim sound stronger, I label it `unsupported_take`.
+The hardest boundary is `grounded_advice` versus `unsupported_take`. My decision
+rule is: if the detail would still help another student make a decision after
+removing the emotional wording, label it `grounded_advice`; if the detail is
+vague, isolated, or only decorative support for a sweeping claim, label it
+`unsupported_take`.
 
 ## Dataset
 
-The labeled dataset should be committed as:
-
-```text
-data/takemeter_labeled.csv
-```
-
-Required columns:
-
-| Column | Description |
-|---|---|
-| `text` | The post or comment text to classify. |
-| `label` | One exact label from the taxonomy. |
-
-After the dataset is added, run:
-
-```powershell
-python ai201_project3_takemeter_starter_clean.py --preflight data/takemeter_labeled.csv --community "TODO community name"
-```
-
-For the full GPU run, open `takemeter_colab.ipynb` in Google Colab. That
-notebook downloads the completed workflow from this repository, prompts for the
-CSV upload, and exports the report artifacts.
-
-After downloading the Colab outputs into `reports/`, run:
-
-```powershell
-python scripts/render_readme_metrics.py
-```
-
-That command creates:
-
-- `reports/readme_evaluation_section.md` - Markdown tables and analysis prompts
-  to paste into this README.
-- `reports/ai_wrong_prediction_prompt.md` - the prompt to paste into Claude or
-  another LLM before writing the final wrong-prediction analysis.
-- `demo/DEMO_SCRIPT.md` - a 3-5 minute recording outline using real prediction
-  examples.
-
-### Label Distribution
-
-TODO: paste the label distribution from the preflight output after
-`data/takemeter_labeled.csv` is added.
+The dataset is included at `data/takemeter_labeled.csv` with 240 labeled
+examples and three balanced labels.
 
 | Label | Count |
 |---|---:|
-| `grounded_advice` | TODO |
-| `unsupported_take` | TODO |
-| `reactive_noise` | TODO |
+| `grounded_advice` | 80 |
+| `unsupported_take` | 80 |
+| `reactive_noise` | 80 |
 
-No single label may account for more than 70% of the dataset. The preflight
-script fails if this balance requirement is violated.
+No label accounts for more than 70% of the dataset.
 
-### Labeling Process
+### Data Source And Labeling Process
 
-Examples will be collected from public `r/berkeley` posts and comments about
-student life, including housing, dining, classes, enrollment, campus services,
-and everyday frustrations. I will exclude usernames, private information,
-deleted text, and unrelated boilerplate. Each example receives exactly one label
-based on the quality of the take, not the topic or whether I agree with it.
-Ambiguous cases will use the boundary rule above: useful transferable detail
-beats emotional framing, but isolated details used to support a sweeping claim
-remain `unsupported_take`.
+The examples were built from my existing local notes summarizing public
+`r/berkeley` discussions about housing and dining. Those notes preserve source
+URLs and paraphrase the discussion content rather than storing usernames or raw
+thread archives. I converted the notes into short post-like examples and labeled
+them using the three-label taxonomy above. This means the dataset is based on
+public `r/berkeley` discourse, but it is not a fresh raw scrape of 200 verbatim
+Reddit comments.
 
-Data source: public `r/berkeley` posts and comments.
-
-Labeling process: manually label each text example using the three definitions,
-then review difficult cases for consistency before training.
+I used Codex to generate the CSV rows from the notes and then kept the labels
+balanced at 80 examples per class. For labeling, the main rule was to assign the
+quality of the take rather than the topic. For example, dining content could be
+`grounded_advice` if it compared options, `unsupported_take` if it made a broad
+claim from one detail, or `reactive_noise` if it was mostly venting.
 
 ### Difficult Examples
 
 | Text excerpt | Possible labels | Final label | Decision rationale |
 |---|---|---|---|
-| "Cafe 3 is awful because the rice was undercooked twice this week." | `grounded_advice`, `unsupported_take` | `unsupported_take` | The post gives one detail, but it makes a broad judgment without comparison, timing, or advice. |
-| "Unit 1 is more social than Blackwell, but Blackwell's rooms and bathrooms are nicer, so choose based on whether comfort or meeting people matters more." | `grounded_advice`, `unsupported_take` | `grounded_advice` | The post gives a comparison and decision rule another student can use. |
-| "I hate enrollment so much, this school is impossible." | `unsupported_take`, `reactive_noise` | `reactive_noise` | The post is mostly emotional venting and does not make a stable claim about Berkeley. |
+| "Cafe 3 is awful because the rice was undercooked twice this week." | `grounded_advice`, `unsupported_take` | `unsupported_take` | It gives one detail, but it generalizes too broadly without comparison or decision advice. |
+| "Unit 1 is more social than Blackwell, but Blackwell's rooms and bathrooms are nicer, so choose based on whether comfort or meeting people matters more." | `grounded_advice`, `unsupported_take` | `grounded_advice` | It gives a comparison and a usable decision rule. |
+| "I hate enrollment so much, this school is impossible." | `unsupported_take`, `reactive_noise` | `reactive_noise` | It is mainly emotional venting, not a stable claim or recommendation. |
 
 ## Fine-Tuning Approach
 
 The fine-tuned classifier uses `distilbert-base-uncased` with a sequence
-classification head. The workflow uses a stratified 70/15/15 split for
-train/validation/test and is intended to run on Google Colab with a T4 GPU.
-
-Training defaults:
+classification head. I trained locally on CPU using the same code intended for
+Google Colab/T4. The dataset was split into stratified train/validation/test
+sets using a 70/15/15 split.
 
 | Setting | Value |
 |---|---|
 | Base model | `distilbert-base-uncased` |
+| Training platform | Local Python CPU run |
+| Train/validation/test split | 168 / 36 / 36 |
 | Epochs | 3 |
 | Learning rate | `2e-5` |
 | Train batch size | 16 |
@@ -141,146 +84,148 @@ Training defaults:
 | Weight decay | `0.01` |
 | Max token length | 256 |
 
-Hyperparameter decision: 3 epochs is a conservative choice for a small dataset.
-It gives the model multiple passes over the examples while limiting overfitting.
-This is a deliberate training decision, not just an unchanged default: if
-validation accuracy flattens or drops after early epochs, longer training would
-be more likely to memorize community-specific keywords than learn label
-boundaries.
+The main hyperparameter decision was to keep training at 3 epochs. With only
+240 examples, longer training would risk memorizing phrasing patterns from the
+generated/paraphrased dataset instead of learning the intended label boundary.
 
 ## Baseline
 
-The baseline uses Groq `llama-3.3-70b-versatile` with temperature `0`. The prompt
-is generated from the community name, labels, and representative examples, and it
-instructs the model to return only one valid label.
-
-Baseline results are collected on the exact same held-out test split as the
-fine-tuned model so the comparison is fair.
-
-The exact prompt used during the run is saved in:
-
-```text
-reports/evaluation_results.json
-```
+The baseline uses Groq `llama-3.3-70b-versatile` with temperature `0`. The
+prompt names `r/berkeley`, defines all three labels, gives two examples per
+label, and instructs the model to output only a valid label. Baseline predictions
+were collected on the exact same 36-example held-out test split as the
+fine-tuned model.
 
 ## Evaluation Report
 
-TODO: Run the Colab workflow and replace this section with real values.
-
-```powershell
-python ai201_project3_takemeter_starter_clean.py --csv data/takemeter_labeled.csv --community "TODO community name"
-```
-
-In Colab, add `GROQ_API_KEY` through Secrets before running the baseline.
-
-Good enough threshold from `planning.md`: TODO: paste the pre-training threshold
-and state whether the final fine-tuned model met it.
+The baseline and fine-tuned model were evaluated on the same held-out test split.
+My planned "good enough" threshold was at least 0.65 accuracy, no class F1 below
+0.45, and ideally beating the baseline. The fine-tuned model exceeded the
+absolute accuracy/F1 threshold, but it did not beat the Groq baseline.
 
 ### Overall Metrics
 
 | Model | Accuracy |
 |---|---:|
-| Groq zero-shot baseline | TODO |
-| Fine-tuned DistilBERT | TODO |
+| Groq zero-shot baseline | 0.972 |
+| Fine-tuned DistilBERT | 0.917 |
 
 ### Per-Class Metrics
 
-At least one per-class metric for the fine-tuned model is required; this table
-reports precision, recall, and F1 for each label.
-
 | Model | Label | Precision | Recall | F1 |
 |---|---|---:|---:|---:|
-| Baseline | TODO | TODO | TODO | TODO |
-| Fine-tuned | TODO | TODO | TODO | TODO |
+| Baseline | `grounded_advice` | 0.923 | 1.000 | 0.960 |
+| Baseline | `reactive_noise` | 1.000 | 1.000 | 1.000 |
+| Baseline | `unsupported_take` | 1.000 | 0.917 | 0.957 |
+| Fine-tuned | `grounded_advice` | 0.909 | 0.833 | 0.870 |
+| Fine-tuned | `reactive_noise` | 1.000 | 1.000 | 1.000 |
+| Fine-tuned | `unsupported_take` | 0.846 | 0.917 | 0.880 |
 
 ### Confusion Matrix
 
 Rows are true labels and columns are fine-tuned model predictions.
 
-| True \\ Predicted | TODO |
-|---|---:|
-| TODO | TODO |
+| True \ Predicted | `grounded_advice` | `reactive_noise` | `unsupported_take` |
+|---|---:|---:|---:|
+| `grounded_advice` | 10 | 0 | 2 |
+| `reactive_noise` | 0 | 12 | 0 |
+| `unsupported_take` | 1 | 0 | 11 |
 
-The image version is saved at `reports/confusion_matrix.png`.
+The image version is committed at `reports/confusion_matrix.png`.
 
 ### AI-Assisted Wrong-Prediction Pattern Review
 
-TODO: Before finalizing this section, paste
-`reports/ai_wrong_prediction_prompt.md` into Claude or another LLM and ask it to
-surface patterns in the misclassified examples. Then re-read the examples
-yourself. Keep the patterns that are actually supported, and say which suggested
-patterns you corrected or discarded.
+Before writing this analysis, I used Groq as a second AI reviewer. I gave it the
+three misclassified examples and asked it to identify common themes. It suggested
+that topic words may be overriding structure, that several examples lack a clear
+conclusion, and that all errors have low confidence. After rereading the
+examples, I kept the `grounded_advice` versus `unsupported_take` boundary and
+low-confidence uncertainty patterns. I discarded sarcasm, short-post length, and
+`reactive_noise` confusion as explanations because none of the three wrong
+examples are sarcastic, very short, or predicted as `reactive_noise`.
 
 ### Wrong Predictions
 
 | Text excerpt | True label | Predicted label | Confidence | Analysis |
 |---|---|---|---:|---|
-| TODO | TODO | TODO | TODO | TODO |
-| TODO | TODO | TODO | TODO | TODO |
-| TODO | TODO | TODO | TODO | TODO |
-
-Each analysis should tie the error to the data, a label boundary, or model
-behavior. Do not write only that the model got it wrong.
+| "the dining situation is the only choice that makes sense. This is one strong negative experience, not a representative survey of every diner." | `unsupported_take` | `grounded_advice` | 0.374 | The model probably focused on the phrase "not a representative survey," which sounds careful and analytical. The label is still `unsupported_take` because the opening claim is broad and overconfident. This boundary would improve with more examples where caveats appear inside otherwise unsupported claims. |
+| "The comparison matters because Clark Kerr dining... praised Clark Kerr for dishes such as salmon, ribs, pasta, pizza..." | `grounded_advice` | `unsupported_take` | 0.390 | This example contains many food nouns but the useful signal is that it reports concrete details from a positive review. The model may have learned that broad dining praise often belongs to `unsupported_take`. More diverse `grounded_advice` examples with positive details would help. |
+| "The practical takeaway seems to be that other students disagree, calling some Crossroads meals bland." | `grounded_advice` | `unsupported_take` | 0.371 | The post is short and reports disagreement rather than giving a full recommendation. I kept it as `grounded_advice` because the useful point is that dining quality varies by reviewer. The model missed that disagreement itself can be useful advice. A tighter definition should say that summarizing disagreement can count as grounded advice when it helps decision-making. |
 
 ### Sample Classifications
 
 | Text excerpt | True label | Predicted label | Confidence | Correct? |
 |---|---|---|---:|---|
-| TODO | TODO | TODO | TODO | TODO |
-| TODO | TODO | TODO | TODO | TODO |
-| TODO | TODO | TODO | TODO | TODO |
+| "The useful student advice is to inspect the daily menu and maintain alternatives instead of assuming every meal at the nearest hall will suit one person's tastes." | `grounded_advice` | `grounded_advice` | 0.429 | Yes |
+| "campus food proves Berkeley does not have it together. Desserts and sandwiches could be good..." | `unsupported_take` | `unsupported_take` | 0.415 | Yes |
+| "someone living next to Cafe 3 may value proximity more than another student values a particular Crossroads station." | `grounded_advice` | `grounded_advice` | 0.415 | Yes |
+| "the dining situation is the only choice that makes sense..." | `unsupported_take` | `grounded_advice` | 0.374 | No |
+| "A detailed positive review praised Clark Kerr for dishes such as salmon, ribs, pasta..." | `grounded_advice` | `unsupported_take` | 0.390 | No |
 
-Correct example explanation: TODO.
+The first correct prediction is reasonable because it gives transferable advice:
+check the menu and keep backup options instead of assuming the nearest dining
+hall will always work. That is exactly the kind of decision-oriented reasoning
+the `grounded_advice` label is meant to capture.
 
 ## Reflection
 
-TODO: Explain what the model learned compared with what the taxonomy intended.
-Discuss whether it learned meaningful quality signals or shortcuts such as
-keywords, phrasing, topic references, hot-button names, or class imbalance.
-
-Specific failure pattern: TODO: name one repeated failure pattern, such as a
-particular label pair, a post type, or a distribution issue.
+The model captured the easy distinction between `reactive_noise` and the two
+more substantive labels. It got every `reactive_noise` test example right,
+suggesting that emotional/joke/venting language is a clear surface pattern. The
+gap is in the more subtle distinction between a useful take and a confident but
+unsupported one. The model sometimes treated careful wording as advice even when
+the claim was still broad, and sometimes treated positive concrete detail as
+unsupported praise. In other words, it learned some phrasing cues but did not
+fully learn the intended decision rule: "does this help another student make a
+decision?"
 
 ## Spec Reflection
 
-One way the spec helped: TODO.
+The spec helped by forcing the label boundary before training. Naming the
+`grounded_advice` versus `unsupported_take` edge case made the eventual errors
+easier to diagnose because the model failed exactly where the spec predicted the
+task would be hardest.
 
-One way implementation diverged from the spec and why: TODO.
+The implementation diverged from the ideal data plan because direct Reddit
+scraping was blocked from the local environment. Instead of pretending to have a
+fresh raw scrape, I built the dataset from existing paraphrased notes of public
+`r/berkeley` discussions and disclosed that limitation. This made the project
+runnable and inspectable, but it means the dataset is cleaner and more templated
+than real Reddit comments would be.
 
 ## AI Usage
 
-1. Codex was directed to convert the Colab starter into a complete workflow with
-   dataset validation, label-map inference, fine-tuning, Groq baseline evaluation,
-   and export files. Human review still needs to provide the final dataset and
-   verify that inferred labels match the intended taxonomy.
-2. Codex was directed to create the submission documentation scaffold from the
-   course rubric. The final README must be revised after training with real
-   metrics, difficult examples, prediction analysis, and reflection.
-
-Annotation assistance disclosure: TODO: state whether AI helped label examples.
+1. I directed Codex to convert the Colab starter into a complete workflow with
+   dataset validation, label-map handling, DistilBERT fine-tuning, Groq baseline
+   evaluation, and exported report files. I revised the label definitions so the
+   generated prompt matched the `r/berkeley` TakeMeter task instead of generic
+   labels.
+2. I directed Codex to generate `data/takemeter_labeled.csv` from my existing
+   public-discussion notes and keep the classes balanced. I reviewed and
+   disclosed this process because the rows are generated/paraphrased examples,
+   not raw scraped Reddit comments.
+3. I used Groq as an AI reviewer for the wrong predictions. It suggested several
+   possible patterns; I kept the supported ones about the
+   `grounded_advice`/`unsupported_take` boundary and low-confidence errors, and
+   discarded unsupported suggestions about sarcasm and `reactive_noise`.
 
 ## Demo Video
 
-TODO: Add a link to a 3-5 minute demo video showing:
-
-- 3-5 posts classified by the fine-tuned model with label and confidence visible;
-- one correct prediction explained;
-- one incorrect prediction explained;
-- a brief walkthrough of this evaluation report.
-
-If the file is too large for GitHub, link a shareable video URL here.
-
-Evaluation report summary for demo: TODO: briefly surface the key metrics and
-most important error pattern.
+The demo video is committed at [`demo/takemeter-demo.mp4`](demo/takemeter-demo.mp4).
+It shows five sample classifications with predicted labels and confidence, one
+correct prediction explanation, one incorrect prediction explanation, and a short
+walkthrough of the evaluation report. The narration/caption outline is in
+[`demo/DEMO_SCRIPT.md`](demo/DEMO_SCRIPT.md).
 
 ## Repository Checklist
 
-- [ ] `planning.md` in repo root.
-- [ ] `README.md` with all rubric sections completed.
-- [ ] `data/takemeter_labeled.csv` or a dataset link in this README.
-- [ ] Completed Colab workflow script/notebook.
-- [ ] `reports/evaluation_results.json`.
-- [ ] `reports/confusion_matrix.png`.
-- [ ] `reports/predictions.csv`.
-- [ ] Demo video or accessible demo link.
-- [ ] No API keys or secrets committed.
+- [x] `planning.md` in repo root.
+- [x] `README.md` with required sections.
+- [x] `data/takemeter_labeled.csv` included.
+- [x] Completed workflow script and Colab runner.
+- [x] `reports/evaluation_results.json`.
+- [x] `reports/confusion_matrix.png`.
+- [x] `reports/predictions.csv`.
+- [x] Wrong-prediction AI review artifacts.
+- [x] Demo video or accessible demo link.
+- [x] No API keys or secrets committed.

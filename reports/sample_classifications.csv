@@ -1,0 +1,6 @@
+text,true_label,finetuned_prediction,finetuned_confidence,baseline_prediction,is_correct
+The comparison matters because practical takeaway The useful student advice is to inspect the daily menu and maintain alternatives instead of assuming every meal at the nearest hall will suit one person's tastes.,grounded_advice,grounded_advice,0.4291,grounded_advice,True
+"campus food proves Berkeley does not have it together. Desserts and sandwiches Desserts could be good, while the build-your-own sandwich station used generic ingredients and felt unremarkable.",unsupported_take,unsupported_take,0.415,unsupported_take,True
+The practical takeaway seems to be that someone living next to Cafe 3 may value proximity more than another student values a particular Crossroads station.,grounded_advice,grounded_advice,0.4147,grounded_advice,True
+"the dining situation is the only choice that makes sense. This is one strong negative experience, not a representative survey of every diner.",unsupported_take,grounded_advice,0.3742,unsupported_take,False
+"The comparison matters because clark Kerr dining A detailed positive review praised Clark Kerr for dishes such as salmon, ribs, pasta, pizza, macaroni and cheese, its salad bar, outdoor seating, and atmosphere.",grounded_advice,unsupported_take,0.3903,grounded_advice,False

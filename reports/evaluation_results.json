@@ -1,0 +1,103 @@
+{
+  "community": "r/berkeley",
+  "label_map": {
+    "grounded_advice": 0,
+    "reactive_noise": 1,
+    "unsupported_take": 2
+  },
+  "model": "distilbert-base-uncased",
+  "test_set_size": 36,
+  "baseline_accuracy": 0.9722,
+  "baseline_parseable": 36,
+  "finetuned_accuracy": 0.9167,
+  "improvement": -0.0556,
+  "finetuned_classification_report": {
+    "grounded_advice": {
+      "precision": 0.9090909090909091,
+      "recall": 0.8333333333333334,
+      "f1-score": 0.8695652173913043,
+      "support": 12.0
+    },
+    "reactive_noise": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 12.0
+    },
+    "unsupported_take": {
+      "precision": 0.8461538461538461,
+      "recall": 0.9166666666666666,
+      "f1-score": 0.88,
+      "support": 12.0
+    },
+    "accuracy": 0.9166666666666666,
+    "macro avg": {
+      "precision": 0.9184149184149185,
+      "recall": 0.9166666666666666,
+      "f1-score": 0.9165217391304347,
+      "support": 36.0
+    },
+    "weighted avg": {
+      "precision": 0.9184149184149183,
+      "recall": 0.9166666666666666,
+      "f1-score": 0.9165217391304348,
+      "support": 36.0
+    }
+  },
+  "baseline_classification_report": {
+    "grounded_advice": {
+      "precision": 0.9230769230769231,
+      "recall": 1.0,
+      "f1-score": 0.96,
+      "support": 12.0
+    },
+    "reactive_noise": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 12.0
+    },
+    "unsupported_take": {
+      "precision": 1.0,
+      "recall": 0.9166666666666666,
+      "f1-score": 0.9565217391304348,
+      "support": 12.0
+    },
+    "accuracy": 0.9722222222222222,
+    "macro avg": {
+      "precision": 0.9743589743589745,
+      "recall": 0.9722222222222222,
+      "f1-score": 0.9721739130434782,
+      "support": 36.0
+    },
+    "weighted avg": {
+      "precision": 0.9743589743589745,
+      "recall": 0.9722222222222222,
+      "f1-score": 0.9721739130434782,
+      "support": 36.0
+    }
+  },
+  "confusion_matrix": [
+    [
+      10,
+      0,
+      2
+    ],
+    [
+      0,
+      12,
+      0
+    ],
+    [
+      1,
+      0,
+      11
+    ]
+  ],
+  "labels": [
+    "grounded_advice",
+    "reactive_noise",
+    "unsupported_take"
+  ],
+  "system_prompt": "You are classifying posts from r/berkeley.\nAssign each post to exactly one TakeMeter label based on the quality of the take.\nUse the community context, label definitions, and examples below.\n\ngrounded_advice: The post gives a clear recommendation or judgment supported by specific personal experience, concrete details, comparisons, or reasoning that another student could use.\nExample 1: \"If you are choosing between Blackwell and Unit 1, Blackwell is newer and quieter, but Unit 1 made it easier for me to meet people during the first month.\"\nExample 2: \"For CS 61B, I would not take it with two other heavy technical classes because the projects expand near deadlines even if the weekly lectures feel manageable.\"\n\nreactive_noise: The post is mainly an emotional reaction, joke, complaint, or hype response with little transferable information or argument.\nExample 1: \"Enrollment time again, I hate it here.\"\nExample 2: \"The Wi-Fi died during my quiz, this campus is unserious.\"\n\nunsupported_take: The post makes a broad or confident claim about Berkeley life without enough evidence, context, or reasoning to justify the strength of the opinion.\nExample 1: \"All the dining halls are trash and anyone saying otherwise is coping.\"\nExample 2: \"Foothill is objectively the worst dorm because it is far from everything.\"\n\nRespond with ONLY one valid label name.\nDo not explain your reasoning.\n\nValid labels:\ngrounded_advice\nreactive_noise\nunsupported_take"
+}

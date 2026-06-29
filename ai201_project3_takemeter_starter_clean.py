@@ -73,12 +73,23 @@ def running_in_colab() -> bool:
 
 def ensure_runtime_dependencies() -> None:
     """Install Colab dependencies if needed."""
-    packages = ["groq", "python-dotenv", "datasets", "transformers", "accelerate"]
+    packages = [
+        "groq",
+        "python-dotenv",
+        "datasets",
+        "transformers",
+        "accelerate",
+        "scikit-learn",
+        "torch",
+        "matplotlib",
+    ]
     missing = []
     for package in packages:
         module_name = package.replace("-", "_")
         if package == "python-dotenv":
             module_name = "dotenv"
+        if package == "scikit-learn":
+            module_name = "sklearn"
         try:
             __import__(module_name)
         except Exception:

@@ -1,0 +1,4 @@
+text,true_label,finetuned_prediction,finetuned_confidence,baseline_prediction,is_correct
+"the dining situation is the only choice that makes sense. This is one strong negative experience, not a representative survey of every diner.",unsupported_take,grounded_advice,0.3742,unsupported_take,False
+"The comparison matters because clark Kerr dining A detailed positive review praised Clark Kerr for dishes such as salmon, ribs, pasta, pizza, macaroni and cheese, its salad bar, outdoor seating, and atmosphere.",grounded_advice,unsupported_take,0.3903,grounded_advice,False
+"The practical takeaway seems to be that other students disagree, calling some Crossroads meals bland.",grounded_advice,unsupported_take,0.371,grounded_advice,False
