@@ -31,6 +31,35 @@ MAX_LABELS = 4
 MODEL_NAME = "distilbert-base-uncased"
 OUTPUT_DIR = Path("reports")
 MODEL_OUTPUT_DIR = Path("takemeter-model")
+LABEL_DEFINITIONS = {
+    "grounded_advice": (
+        "The post gives a clear recommendation or judgment supported by specific "
+        "personal experience, concrete details, comparisons, or reasoning that another "
+        "student could use."
+    ),
+    "unsupported_take": (
+        "The post makes a broad or confident claim about Berkeley life without enough "
+        "evidence, context, or reasoning to justify the strength of the opinion."
+    ),
+    "reactive_noise": (
+        "The post is mainly an emotional reaction, joke, complaint, or hype response "
+        "with little transferable information or argument."
+    ),
+}
+LABEL_EXAMPLES = {
+    "grounded_advice": [
+        "If you are choosing between Blackwell and Unit 1, Blackwell is newer and quieter, but Unit 1 made it easier for me to meet people during the first month.",
+        "For CS 61B, I would not take it with two other heavy technical classes because the projects expand near deadlines even if the weekly lectures feel manageable.",
+    ],
+    "unsupported_take": [
+        "All the dining halls are trash and anyone saying otherwise is coping.",
+        "Foothill is objectively the worst dorm because it is far from everything.",
+    ],
+    "reactive_noise": [
+        "Enrollment time again, I hate it here.",
+        "The Wi-Fi died during my quiz, this campus is unserious.",
+    ],
+}
 
 
 def running_in_colab() -> bool:
@@ -142,6 +171,8 @@ def representative_examples(df, label: str, count: int = 2) -> list[str]:
 
 
 def infer_label_definition(label: str) -> str:
+    if label in LABEL_DEFINITIONS:
+        return LABEL_DEFINITIONS[label]
     readable = label.replace("_", " ")
     return (
         f"Posts whose take quality, reasoning style, or discourse value matches "
@@ -157,7 +188,7 @@ def build_system_prompt(df, label_map: dict[str, int], community: str) -> str:
         "",
     ]
     for label in label_map:
-        examples = representative_examples(df, label, count=2)
+        examples = LABEL_EXAMPLES.get(label) or representative_examples(df, label, count=2)
         lines.append(f"{label}: {infer_label_definition(label)}")
         for idx, example in enumerate(examples, start=1):
             lines.append(f'Example {idx}: "{example[:350]}"')

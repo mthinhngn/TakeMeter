@@ -4,8 +4,8 @@ This repository contains the AI201 Project 3 TakeMeter submission package:
 a labeled dataset, a DistilBERT fine-tuning workflow, a Groq zero-shot baseline,
 evaluation artifacts, and the final report.
 
-> Status: implementation scaffold is complete. Final metrics require the real
-> `data/takemeter_labeled.csv` and a Colab run with `GROQ_API_KEY`.
+> Status: community and label design are complete. Final metrics require the
+> real `data/takemeter_labeled.csv` and a Colab run with `GROQ_API_KEY`.
 
 ## Rubric Coverage Checklist
 
@@ -22,27 +22,28 @@ evaluation artifacts, and the final report.
 
 ## Community Choice And Reasoning
 
-TODO: Name the selected community and explain why it is a good source for this
-TakeMeter task. Include what kinds of opinions, arguments, reactions, and
-community-specific norms appear there. Explain why the selected labels measure
-the quality of takes in this community rather than merely sorting posts by topic.
+This project studies `r/berkeley`, a public student community where people ask
+for advice, vent, compare experiences, and argue about campus life. I chose this
+community because many posts are not simply "about" one topic; they differ in
+how useful the take is. A housing post can be grounded advice, a dining post can
+be an unsupported generalization, and an enrollment post can be mostly a
+reaction. The taxonomy therefore measures discourse quality: whether a post
+gives transferable reasoning, asserts a broad claim without support, or mainly
+expresses emotion/noise.
 
 ## Label Taxonomy
 
-Replace this table after adding the dataset. The completed notebook infers label
-names from `data/takemeter_labeled.csv`, but the README must contain human-written
-definitions and two examples per label. Each label should describe discourse
-quality in context, such as whether a take is evidence-backed, hyperbolic,
-low-effort, insightful, reactionary, or otherwise meaningful for the chosen
-community.
-
 | Label | Definition | Example 1 | Example 2 |
 |---|---|---|---|
-| TODO | TODO | TODO | TODO |
-| TODO | TODO | TODO | TODO |
+| `grounded_advice` | The post gives a clear recommendation or judgment supported by specific personal experience, concrete details, comparisons, or reasoning that another student could use. | "If you are choosing between Blackwell and Unit 1, Blackwell is newer and quieter, but Unit 1 made it easier for me to meet people during the first month." | "For CS 61B, I would not take it with two other heavy technical classes because the projects expand near deadlines even if the weekly lectures feel manageable." |
+| `unsupported_take` | The post makes a broad or confident claim about Berkeley life without enough evidence, context, or reasoning to justify the strength of the opinion. | "All the dining halls are trash and anyone saying otherwise is coping." | "Foothill is objectively the worst dorm because it is far from everything." |
+| `reactive_noise` | The post is mainly an emotional reaction, joke, complaint, or hype response with little transferable information or argument. | "Enrollment time again, I hate it here." | "The Wi-Fi died during my quiz, this campus is unserious." |
 
-Boundary note: TODO: explain the clearest difference between the most easily
-confused labels so two readers would likely label most examples the same way.
+Boundary note: the most easily confused labels are `grounded_advice` and
+`unsupported_take`. If a post includes a specific detail that would help another
+student make a decision even after removing the emotional wording, I label it
+`grounded_advice`. If the detail is vague, isolated, or only there to make a
+broad claim sound stronger, I label it `unsupported_take`.
 
 ## Dataset
 
@@ -86,32 +87,41 @@ That command creates:
 
 ### Label Distribution
 
-TODO: paste the label distribution from the preflight output.
+TODO: paste the label distribution from the preflight output after
+`data/takemeter_labeled.csv` is added.
 
 | Label | Count |
 |---|---:|
-| TODO | TODO |
+| `grounded_advice` | TODO |
+| `unsupported_take` | TODO |
+| `reactive_noise` | TODO |
 
 No single label may account for more than 70% of the dataset. The preflight
 script fails if this balance requirement is violated.
 
 ### Labeling Process
 
-TODO: Describe where examples came from, how they were selected, how labels were
-assigned, and any cleanup performed. Explain how ambiguous cases were resolved
-when topic, tone, and take quality pointed in different directions.
+Examples will be collected from public `r/berkeley` posts and comments about
+student life, including housing, dining, classes, enrollment, campus services,
+and everyday frustrations. I will exclude usernames, private information,
+deleted text, and unrelated boilerplate. Each example receives exactly one label
+based on the quality of the take, not the topic or whether I agree with it.
+Ambiguous cases will use the boundary rule above: useful transferable detail
+beats emotional framing, but isolated details used to support a sweeping claim
+remain `unsupported_take`.
 
-Data source: TODO.
+Data source: public `r/berkeley` posts and comments.
 
-Labeling process: TODO.
+Labeling process: manually label each text example using the three definitions,
+then review difficult cases for consistency before training.
 
 ### Difficult Examples
 
 | Text excerpt | Possible labels | Final label | Decision rationale |
 |---|---|---|---|
-| TODO | TODO | TODO | TODO |
-| TODO | TODO | TODO | TODO |
-| TODO | TODO | TODO | TODO |
+| "Cafe 3 is awful because the rice was undercooked twice this week." | `grounded_advice`, `unsupported_take` | `unsupported_take` | The post gives one detail, but it makes a broad judgment without comparison, timing, or advice. |
+| "Unit 1 is more social than Blackwell, but Blackwell's rooms and bathrooms are nicer, so choose based on whether comfort or meeting people matters more." | `grounded_advice`, `unsupported_take` | `grounded_advice` | The post gives a comparison and decision rule another student can use. |
+| "I hate enrollment so much, this school is impossible." | `unsupported_take`, `reactive_noise` | `reactive_noise` | The post is mostly emotional venting and does not make a stable claim about Berkeley. |
 
 ## Fine-Tuning Approach
 

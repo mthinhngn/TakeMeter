@@ -11,12 +11,16 @@ specific discourse norms of the chosen community.
 The community should be narrow enough that members share recognizable norms, but
 broad enough to collect at least 200 labeled examples.
 
-**Final community:** TODO: replace with the exact subreddit/forum/community used.
+**Final community:** `r/berkeley`.
 
-**Reasoning:** TODO: explain why this community produces useful, labelable posts
-and why the classification task matters. This should be more than naming the
-community: describe the recurring opinion style, disagreements, or quality
-signals that make TakeMeter useful there.
+**Reasoning:** `r/berkeley` is active, text-heavy, and full of practical
+student opinions about housing, dining, classes, safety, registration, social
+life, and campus policy. It is a good fit for TakeMeter because the same topic
+can produce very different kinds of takes: some posts explain tradeoffs from
+experience, some make confident claims without support, and some are mostly
+immediate venting or joking. Those distinctions matter because students often
+use the community to make real decisions, so the quality of the reasoning is
+more important than whether the post is positive or negative.
 
 ## Label Taxonomy
 
@@ -27,13 +31,19 @@ low-effort reaction within this community.
 
 | Label | Definition | Example 1 | Example 2 |
 |---|---|---|---|
-| TODO | TODO | TODO | TODO |
-| TODO | TODO | TODO | TODO |
+| `grounded_advice` | The post gives a clear recommendation or judgment supported by specific personal experience, concrete details, comparisons, or reasoning that another student could use. | "If you are choosing between Blackwell and Unit 1, Blackwell is newer and quieter, but Unit 1 made it easier for me to meet people during the first month." | "For CS 61B, I would not take it with two other heavy technical classes because the projects expand near deadlines even if the weekly lectures feel manageable." |
+| `unsupported_take` | The post makes a broad or confident claim about Berkeley life without enough evidence, context, or reasoning to justify the strength of the opinion. | "All the dining halls are trash and anyone saying otherwise is coping." | "Foothill is objectively the worst dorm because it is far from everything." |
+| `reactive_noise` | The post is mainly an emotional reaction, joke, complaint, or hype response with little transferable information or argument. | "Enrollment time again, I hate it here." | "The Wi-Fi died during my quiz, this campus is unserious." |
 
-**Hardest anticipated edge case:** TODO: name one boundary that will be hard to
-label, such as evidence-backed criticism versus low-effort negativity, funny
-hyperbole versus empty noise, or an insightful unpopular opinion versus a bad
-take. State the rule that will resolve that boundary.
+**Hardest anticipated edge case:** The hardest boundary is between
+`grounded_advice` and `unsupported_take` when a post has a strong opinion plus
+one concrete detail. Decision rule: if the detail would still help another
+student make a decision after removing the emotional wording, label it
+`grounded_advice`; if the detail is vague, cherry-picked, or only decorative,
+label it `unsupported_take`. Example: "Cafe 3 is awful because the rice was
+undercooked twice this week" is borderline, but it becomes `grounded_advice` if
+the post compares options or explains when/why the issue happens; by itself it
+is closer to `unsupported_take` because it generalizes from a narrow complaint.
 
 ## Data Collection Plan
 
@@ -87,16 +97,17 @@ recall, and F1 are necessary because a good overall score could hide failure on
 a smaller label. The confusion matrix will show which label boundaries are most
 fragile.
 
-**Good enough threshold:** TODO: state the concrete target before final tuning.
-Suggested default: the fine-tuned model should beat the Groq baseline on the
-same test split and reach at least 0.65 accuracy, with no class F1 below 0.45.
-If the dataset is especially ambiguous, revise this threshold before training
-and explain why.
+**Good enough threshold:** The fine-tuned model should beat the Groq baseline on
+the same test split, reach at least 0.65 accuracy, and keep each class F1 at or
+above 0.45. This threshold is realistic for a small 200-example dataset while
+still requiring the model to learn more than the majority label or obvious
+keywords.
 
 ## Anticipated Challenges
 
 - Short posts may lack context and be hard to label consistently.
-- Some labels may overlap if the taxonomy is based on tone rather than intent.
+- `grounded_advice` and `unsupported_take` may overlap when a post mixes a
+  useful detail with exaggerated framing.
 - Label imbalance may make minority classes harder for the model to learn.
 - The Groq baseline may output extra text unless the prompt strongly constrains
   the response format.
